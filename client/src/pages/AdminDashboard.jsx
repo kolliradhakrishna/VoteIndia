@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { queryVoters, getStats, updateVoterStatus, deleteVoter } from '../store/voterStore';
 
 const STATUS_COLORS = {
@@ -6,8 +6,6 @@ const STATUS_COLORS = {
   Approved: 'badge-green',
   Rejected: 'badge-danger',
 };
-
-const BASE_URL = import.meta.env.VITE_API_URL || '';
 
 const AdminDashboard = () => {
   const [voters, setVoters] = useState([]);
@@ -19,29 +17,16 @@ const AdminDashboard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [selected, setSelected] = useState(null);
-  const [apiError, setApiError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const LIMIT = 8;
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setApiError('');
-    try {
-      const [result, statsData] = await Promise.all([
-        queryVoters({ search, state: filterState, status: filterStatus, page, limit: LIMIT }),
-        getStats(),
-      ]);
-      setVoters(result.data);
-      setTotalPages(result.pages);
-      setTotal(result.total);
-      setStats(statsData);
-    } catch (err) {
-      setApiError(err?.message || 'Failed to load data. Is the backend running?');
-    } finally {
-      setLoading(false);
-    }
-  }, [search, filterState, filterStatus, page]);
+  const refresh = () => {
+    const result = queryVoters({ search, state: filterState, status: filterStatus, page, limit: LIMIT });
+    setVoters(result.data);
+    setTotalPages(result.pages);
+    setTotal(result.total);
+    setStats(getStats());
+  };
 
   useEffect(() => {
     refresh();
@@ -53,36 +38,21 @@ const AdminDashboard = () => {
     refresh();
   };
 
-  const handleStatusChange = async (id, newStatus) => {
-    try {
-      await updateVoterStatus(id, newStatus);
-      refresh();
-      if (selected?._id === id) setSelected((prev) => ({ ...prev, status: newStatus }));
-    } catch (err) {
-      alert(err?.message || 'Failed to update status.');
-    }
+  const handleStatusChange = (id, newStatus) => {
+    updateVoterStatus(id, newStatus);
+    refresh();
+    if (selected?._id === id) setSelected((prev) => ({ ...prev, status: newStatus }));
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!window.confirm('Are you sure you want to delete this voter record?')) return;
-    try {
-      await deleteVoter(id);
-      if (selected?._id === id) setSelected(null);
-      refresh();
-    } catch (err) {
-      alert(err?.message || 'Failed to delete voter.');
-    }
+    deleteVoter(id);
+    if (selected?._id === id) setSelected(null);
+    refresh();
   };
 
   const formatDate = (d) =>
     d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
-
-  // Resolve photo URL — backend stores /uploads/filename, so prepend BASE_URL
-  const resolvePhoto = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    return `${BASE_URL}${url}`;
-  };
 
   return (
     <div style={{ paddingTop: '72px', minHeight: '100vh' }}>
@@ -100,21 +70,6 @@ const AdminDashboard = () => {
           </p>
           <div className="tricolor-stripe" style={{ maxWidth: '120px', marginTop: '16px' }} />
         </div>
-
-        {/* API Error Banner */}
-        {apiError && (
-          <div style={{
-            background: 'rgba(255,71,87,0.1)',
-            border: '1px solid rgba(255,71,87,0.4)',
-            borderRadius: '10px',
-            padding: '14px 20px',
-            color: 'var(--danger-light)',
-            marginBottom: '24px',
-            fontSize: '0.9rem',
-          }}>
-            ⚠️ {apiError}
-          </div>
-        )}
 
         {/* Stats Row */}
         {stats && (
@@ -178,12 +133,7 @@ const AdminDashboard = () => {
 
             {/* Table */}
             <div className="glass-card animate-fadeInUp animate-delay-3" style={{ overflow: 'hidden' }}>
-              {loading ? (
-                <div style={{ padding: '60px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: '12px' }}>⏳</div>
-                  <p className="text-muted">Loading registrations...</p>
-                </div>
-              ) : voters.length === 0 ? (
+              {voters.length === 0 ? (
                 <div style={{ padding: '60px', textAlign: 'center' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📭</div>
                   <p className="text-muted" style={{ marginBottom: '8px' }}>No registrations found</p>
@@ -310,7 +260,7 @@ const AdminDashboard = () => {
 
               {selected.photoUrl && (
                 <img
-                  src={resolvePhoto(selected.photoUrl)}
+                  src={selected.photoUrl}
                   alt="Voter"
                   style={{ width: '80px', height: '80px', borderRadius: '12px', objectFit: 'cover', border: '2px solid var(--saffron)', marginBottom: '16px', display: 'block' }}
                 />

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import StepIndicator from '../components/StepIndicator';
-import { registerVoter } from '../store/voterStore';
+import { saveVoter } from '../store/voterStore';
 
 // ── Defined OUTSIDE component so it has a stable identity across re-renders ──
 // If defined inside, React treats it as a new component on every render and
@@ -49,7 +49,7 @@ const RegistrationForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [photoPreview, setPhotoPreview] = useState(null);
-  const [photoFile, setPhotoFile] = useState(null); // actual File object for FormData upload
+  const [photoBase64, setPhotoBase64] = useState(null);
 
   const [form, setForm] = useState({
     fullName: '',
@@ -74,7 +74,7 @@ const RegistrationForm = () => {
     if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  // Store the File object for FormData upload + generate preview
+  // Convert photo to base64 for localStorage storage
   const handlePhoto = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -82,9 +82,11 @@ const RegistrationForm = () => {
       setErrors({ ...errors, photo: 'File size must be under 5MB' });
       return;
     }
-    setPhotoFile(file);
     const reader = new FileReader();
-    reader.onloadend = () => setPhotoPreview(reader.result);
+    reader.onloadend = () => {
+      setPhotoBase64(reader.result);
+      setPhotoPreview(reader.result);
+    };
     reader.readAsDataURL(file);
     setErrors({ ...errors, photo: '' });
   };
@@ -124,54 +126,36 @@ const RegistrationForm = () => {
 
   const prevStep = () => setStep((s) => s - 1);
 
-  // Build FormData and POST to backend API
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setLoading(true);
     setError('');
 
-    try {
-      const formData = new FormData();
+    // Small delay so spinner is visible
+    setTimeout(() => {
+      try {
+        const voter = saveVoter({
+          ...form,
+          panCard: form.panCard.toUpperCase(),
+          dateOfBirth: dob ? dob.toISOString() : '',
+          age,
+          photoUrl: photoBase64 || null,
+        });
 
-      // Personal info
-      formData.append('fullName', form.fullName.trim());
-      formData.append('gender', form.gender);
-      formData.append('nationality', form.nationality.trim());
-      formData.append('dateOfBirth', dob ? dob.toISOString() : '');
-      formData.append('age', String(age));
+        // Show popup success alert to user
+        alert(`🎉 Registration Submitted Successfully!\nYour Voter ID: ${voter.voterIdNumber}`);
 
-      // Contact info
-      formData.append('phone', form.phone.trim());
-      formData.append('email', form.email.trim().toLowerCase());
-      formData.append('address', form.address.trim());
-      formData.append('city', form.city.trim());
-      formData.append('state', form.state);
-      formData.append('pinCode', form.pinCode.trim());
-
-      // ID proof
-      formData.append('aadharNumber', form.aadharNumber.replace(/\s/g, ''));
-      formData.append('panCard', form.panCard.toUpperCase().trim());
-
-      // Optional photo file
-      if (photoFile) {
-        formData.append('photo', photoFile);
+        navigate('/success', { state: { voter } });
+      } catch (err) {
+        if (err.code === 'DUPLICATE') {
+          setError(`⚠️ A voter with this Aadhar number is already registered. (Voter ID: ${err.voterIdNumber})`);
+        } else {
+          setError('Submission failed. Please try again.');
+        }
+      } finally {
+        setLoading(false);
       }
-
-      const result = await registerVoter(formData);
-      navigate('/success', { state: { voter: result.data } });
-    } catch (err) {
-      if (err.voterIdNumber) {
-        setError(`⚠️ A voter with this Aadhar number is already registered. (Voter ID: ${err.voterIdNumber})`);
-      } else if (err.message) {
-        setError(err.message);
-      } else {
-        setError('Submission failed. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    }, 800);
   };
-
-
 
   return (
     <div className="page-wrapper" style={{ padding: '88px 20px 40px', alignItems: 'flex-start' }}>
@@ -490,7 +474,7 @@ const RegistrationForm = () => {
         {/* Footer note */}
         <div className="animate-fadeInUp animate-delay-5" style={{ marginTop: '24px', textAlign: 'center' }}>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            🔒 Your information is stored securely in our database. By submitting, you agree to our Terms of Service.
+            🔒 Your information is stored securely in your browser. By submitting, you agree to our Terms of Service.
           </p>
         </div>
       </div>

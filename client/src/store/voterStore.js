@@ -1,117 +1,104 @@
-// API-based voter store — calls the Express/MongoDB backend
-// VITE_API_URL is set in .env for production (Render URL)
-// In local dev it's empty, so Vite proxy forwards /api → localhost:5000
+// localStorage-based voter data store — no backend required
+const STORAGE_KEY = 'voteindia_registrations';
 
-const BASE = import.meta.env.VITE_API_URL || '';
+// Generate a unique voter ID
+export const generateVoterId = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const random = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return `VTR-${random}`;
+};
 
-// ── Safe JSON parser ──────────────────────────────────────────────────────────
-// res.json() throws "Unexpected end of JSON input" when:
-//   • the server returns an empty body (network error, CORS block, server crash)
-//   • the server returns HTML (e.g. a 502/504 gateway error page)
-// This helper reads the raw text first, then tries to parse it.
-const safeJson = async (res) => {
-  const text = await res.text();
+// Get all voters from localStorage
+export const getAllVoters = () => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
 
-  if (!text || text.trim() === '') {
-    throw new Error(
-      res.status === 0 || !res.status
-        ? 'Cannot reach the server. Please make sure the backend is running.'
-        : `Server returned an empty response (HTTP ${res.status}). Is the backend running?`
+// Save a new voter to localStorage
+export const saveVoter = (voterData) => {
+  const voters = getAllVoters();
+
+  // Check duplicate Aadhar
+  const existing = voters.find((v) => v.aadharNumber === voterData.aadharNumber);
+  if (existing) {
+    throw { code: 'DUPLICATE', voterIdNumber: existing.voterIdNumber };
+  }
+
+  const newVoter = {
+    _id: Date.now().toString(),
+    voterIdNumber: generateVoterId(),
+    ...voterData,
+    status: 'Pending',
+    registrationDate: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  };
+
+  voters.unshift(newVoter); // newest first
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(voters));
+  return newVoter;
+};
+
+// Update voter status
+export const updateVoterStatus = (id, status) => {
+  const voters = getAllVoters();
+  const idx = voters.findIndex((v) => v._id === id);
+  if (idx === -1) throw new Error('Voter not found');
+  voters[idx].status = status;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(voters));
+  return voters[idx];
+};
+
+// Delete voter
+export const deleteVoter = (id) => {
+  const voters = getAllVoters().filter((v) => v._id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(voters));
+};
+
+// Get stats
+export const getStats = () => {
+  const voters = getAllVoters();
+  const byState = voters.reduce((acc, v) => {
+    acc[v.state] = (acc[v.state] || 0) + 1;
+    return acc;
+  }, {});
+  const byStateArr = Object.entries(byState)
+    .map(([_id, count]) => ({ _id, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  return {
+    total: voters.length,
+    pending: voters.filter((v) => v.status === 'Pending').length,
+    approved: voters.filter((v) => v.status === 'Approved').length,
+    rejected: voters.filter((v) => v.status === 'Rejected').length,
+    byState: byStateArr,
+  };
+};
+
+// Search + filter + paginate voters
+export const queryVoters = ({ search = '', state = '', status = '', page = 1, limit = 8 }) => {
+  let voters = getAllVoters();
+
+  if (search) {
+    const q = search.toLowerCase();
+    voters = voters.filter(
+      (v) =>
+        v.fullName?.toLowerCase().includes(q) ||
+        v.email?.toLowerCase().includes(q) ||
+        v.voterIdNumber?.toLowerCase().includes(q)
     );
   }
+  if (state) voters = voters.filter((v) => v.state === state);
+  if (status) voters = voters.filter((v) => v.status === status);
 
-  try {
-    return JSON.parse(text);
-  } catch {
-    // Server returned non-JSON (HTML error page, nginx 502, etc.)
-    throw new Error(
-      `Server returned an unexpected response (HTTP ${res.status}). ` +
-      `Make sure your backend URL is correct and the server is running.\n` +
-      `Response preview: ${text.substring(0, 120)}`
-    );
-  }
-};
+  const total = voters.length;
+  const pages = Math.max(1, Math.ceil(total / limit));
+  const start = (page - 1) * limit;
+  const data = voters.slice(start, start + limit);
 
-// ── Register a new voter (multipart FormData for photo upload) ────────────────
-export const registerVoter = async (formData) => {
-  let res;
-  try {
-    res = await fetch(`${BASE}/api/voters/register`, {
-      method: 'POST',
-      body: formData, // FormData — do NOT set Content-Type header (browser sets it with boundary)
-    });
-  } catch (networkErr) {
-    throw new Error('Network error: Cannot reach the backend. Is the server running?');
-  }
-
-  const json = await safeJson(res);
-  if (!res.ok) throw json;
-  return json;
-};
-
-// ── Get dashboard stats ───────────────────────────────────────────────────────
-export const getStats = async () => {
-  let res;
-  try {
-    res = await fetch(`${BASE}/api/voters/stats`);
-  } catch {
-    throw new Error('Network error: Cannot reach the backend.');
-  }
-
-  const json = await safeJson(res);
-  if (!res.ok) throw json;
-  return json.data;
-};
-
-// ── Query voters with search / filter / pagination ────────────────────────────
-export const queryVoters = async ({ search = '', state = '', status = '', page = 1, limit = 8 }) => {
-  const params = new URLSearchParams();
-  if (search) params.set('search', search);
-  if (state)  params.set('state', state);
-  if (status) params.set('status', status);
-  params.set('page', page);
-  params.set('limit', limit);
-
-  let res;
-  try {
-    res = await fetch(`${BASE}/api/voters?${params.toString()}`);
-  } catch {
-    throw new Error('Network error: Cannot reach the backend.');
-  }
-
-  const json = await safeJson(res);
-  if (!res.ok) throw json;
-  return json; // { success, total, page, pages, data }
-};
-
-// ── Update voter approval status ──────────────────────────────────────────────
-export const updateVoterStatus = async (id, status) => {
-  let res;
-  try {
-    res = await fetch(`${BASE}/api/voters/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-  } catch {
-    throw new Error('Network error: Cannot reach the backend.');
-  }
-
-  const json = await safeJson(res);
-  if (!res.ok) throw json;
-  return json;
-};
-
-// ── Delete voter ──────────────────────────────────────────────────────────────
-export const deleteVoter = async (id) => {
-  let res;
-  try {
-    res = await fetch(`${BASE}/api/voters/${id}`, { method: 'DELETE' });
-  } catch {
-    throw new Error('Network error: Cannot reach the backend.');
-  }
-
-  const json = await safeJson(res);
-  if (!res.ok) throw json;
-  return json;
+  return { total, pages, data };
 };
