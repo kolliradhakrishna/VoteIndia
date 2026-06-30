@@ -17,7 +17,11 @@ app.use(cors({
       'http://localhost:5173',
       'http://localhost:3000',
     ];
-    // Allow Vercel deployments and no-origin (Postman, curl)
+    // Add custom frontend URL from env (set this in Render to your Vercel URL)
+    if (process.env.FRONTEND_URL) {
+      allowed.push(process.env.FRONTEND_URL);
+    }
+    // Allow all *.vercel.app domains and no-origin requests (Postman, curl)
     if (!origin || allowed.includes(origin) || /\.vercel\.app$/.test(origin)) {
       callback(null, true);
     } else {

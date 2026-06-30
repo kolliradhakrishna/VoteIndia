@@ -1,104 +1,59 @@
-// localStorage-based voter data store (replaces MongoDB)
-const STORAGE_KEY = 'voteindia_registrations';
+// API-based voter store — calls the Express/MongoDB backend
+// VITE_API_URL is set in .env for production (Render URL)
+// In local dev it's empty, so Vite proxy forwards /api → localhost:5000
 
-// Generate a unique voter ID
-export const generateVoterId = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const random = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  return `VTR-${random}`;
+const BASE = import.meta.env.VITE_API_URL || '';
+
+// ── Register a new voter (multipart FormData for photo upload) ──
+export const registerVoter = async (formData) => {
+  const res = await fetch(`${BASE}/api/voters/register`, {
+    method: 'POST',
+    body: formData, // FormData — do NOT set Content-Type header (browser sets it)
+  });
+  const json = await res.json();
+  if (!res.ok) throw json; // throw the full error object
+  return json;
 };
 
-// Get all voters from localStorage
-export const getAllVoters = () => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+// ── Get dashboard stats ──
+export const getStats = async () => {
+  const res = await fetch(`${BASE}/api/voters/stats`);
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json.data;
 };
 
-// Save a new voter to localStorage
-export const saveVoter = (voterData) => {
-  const voters = getAllVoters();
+// ── Query voters with search / filter / pagination ──
+export const queryVoters = async ({ search = '', state = '', status = '', page = 1, limit = 8 }) => {
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  if (state)  params.set('state', state);
+  if (status) params.set('status', status);
+  params.set('page', page);
+  params.set('limit', limit);
 
-  // Check duplicate Aadhar
-  const existing = voters.find((v) => v.aadharNumber === voterData.aadharNumber);
-  if (existing) {
-    throw { code: 'DUPLICATE', voterIdNumber: existing.voterIdNumber };
-  }
-
-  const newVoter = {
-    _id: Date.now().toString(),
-    voterIdNumber: generateVoterId(),
-    ...voterData,
-    status: 'Pending',
-    registrationDate: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-  };
-
-  voters.unshift(newVoter); // newest first
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(voters));
-  return newVoter;
+  const res = await fetch(`${BASE}/api/voters?${params.toString()}`);
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json; // { success, total, page, pages, data }
 };
 
-// Update voter status
-export const updateVoterStatus = (id, status) => {
-  const voters = getAllVoters();
-  const idx = voters.findIndex((v) => v._id === id);
-  if (idx === -1) throw new Error('Voter not found');
-  voters[idx].status = status;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(voters));
-  return voters[idx];
+// ── Update voter approval status ──
+export const updateVoterStatus = async (id, status) => {
+  const res = await fetch(`${BASE}/api/voters/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
 };
 
-// Delete voter
-export const deleteVoter = (id) => {
-  const voters = getAllVoters().filter((v) => v._id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(voters));
-};
-
-// Get stats
-export const getStats = () => {
-  const voters = getAllVoters();
-  const byState = voters.reduce((acc, v) => {
-    acc[v.state] = (acc[v.state] || 0) + 1;
-    return acc;
-  }, {});
-  const byStateArr = Object.entries(byState)
-    .map(([_id, count]) => ({ _id, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-
-  return {
-    total: voters.length,
-    pending: voters.filter((v) => v.status === 'Pending').length,
-    approved: voters.filter((v) => v.status === 'Approved').length,
-    rejected: voters.filter((v) => v.status === 'Rejected').length,
-    byState: byStateArr,
-  };
-};
-
-// Search + filter + paginate voters
-export const queryVoters = ({ search = '', state = '', status = '', page = 1, limit = 8 }) => {
-  let voters = getAllVoters();
-
-  if (search) {
-    const q = search.toLowerCase();
-    voters = voters.filter(
-      (v) =>
-        v.fullName?.toLowerCase().includes(q) ||
-        v.email?.toLowerCase().includes(q) ||
-        v.voterIdNumber?.toLowerCase().includes(q)
-    );
-  }
-  if (state) voters = voters.filter((v) => v.state === state);
-  if (status) voters = voters.filter((v) => v.status === status);
-
-  const total = voters.length;
-  const pages = Math.max(1, Math.ceil(total / limit));
-  const start = (page - 1) * limit;
-  const data = voters.slice(start, start + limit);
-
-  return { total, pages, data };
+// ── Delete voter ──
+export const deleteVoter = async (id) => {
+  const res = await fetch(`${BASE}/api/voters/${id}`, { method: 'DELETE' });
+  const json = await res.json();
+  if (!res.ok) throw json;
+  return json;
 };
