@@ -83,10 +83,10 @@ const AgeVerification = () => {
 
         <div className="age-verify-grid">
           {/* Calendar Section */}
-          <div className="animate-fadeInUp animate-delay-2">
-            <div style={{ marginBottom: '16px' }}>
+          <div className="glass-card animate-fadeInUp animate-delay-2" style={{ padding: '28px', minHeight: '260px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ marginBottom: '20px' }}>
               <h2 className="heading-md" style={{ marginBottom: '6px' }}>Select Date of Birth</h2>
-              <p className="text-muted" style={{ fontSize: '0.9rem' }}>Click on your birth date from the calendar below</p>
+              <p className="text-muted" style={{ fontSize: '0.9rem' }}>Choose your birth date from the date picker below</p>
             </div>
             <CalendarPicker selectedDate={selectedDate} onSelect={handleDateSelect} />
           </div>
