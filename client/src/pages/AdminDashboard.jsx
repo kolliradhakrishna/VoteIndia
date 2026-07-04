@@ -8,6 +8,10 @@ const STATUS_COLORS = {
 };
 
 const AdminDashboard = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [voters, setVoters] = useState([]);
   const [stats, setStats] = useState(null);
   const [search, setSearch] = useState('');
@@ -53,6 +57,46 @@ const AdminDashboard = () => {
 
   const formatDate = (d) =>
     d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (adminUsername === 'admin' && adminPassword === 'admin123') {
+      setIsLoggedIn(true);
+      setLoginError('');
+    } else {
+      setLoginError('Invalid username or password');
+    }
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div style={{ paddingTop: '72px', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="page-bg" aria-hidden="true"><div className="page-bg-blob" /></div>
+        <div className="glass-card animate-fadeInUp" style={{ padding: '40px', width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div className="badge badge-saffron" style={{ marginBottom: '14px' }}>Admin Login</div>
+            <h1 className="heading-lg" style={{ marginBottom: '8px' }}>Admin Panel</h1>
+          </div>
+          {loginError && (
+            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--red)', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.85rem', textAlign: 'center' }}>
+              {loginError}
+            </div>
+          )}
+          <form onSubmit={handleLogin}>
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label className="form-label">Username</label>
+              <input type="text" value={adminUsername} onChange={e => setAdminUsername(e.target.value)} placeholder="Enter username (admin)" required />
+            </div>
+            <div className="form-group" style={{ marginBottom: '24px' }}>
+              <label className="form-label">Password</label>
+              <input type="password" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} placeholder="Enter password (admin123)" required />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Login</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ paddingTop: '72px', minHeight: '100vh' }}>

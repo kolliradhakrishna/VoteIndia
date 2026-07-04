@@ -144,24 +144,10 @@ const AgeVerification = () => {
               </div>
             )}
 
-            {/* Info card when no date selected */}
-            {!ageInfo && (
-              <div className="glass-card" style={{ padding: '28px', textAlign: 'center' }}>
-                <div style={{ fontSize: '3.5rem', marginBottom: '12px' }}>📋</div>
-                <div className="heading-md" style={{ marginBottom: '8px' }}>How it works</div>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.7' }}>
-                  <p>1️⃣ Select your date of birth</p>
-                  <p>2️⃣ We calculate your exact age</p>
-                  <p>3️⃣ Age ≥ 18 → Registration form</p>
-                  <p>4️⃣ Age &lt; 18 → Eligibility info</p>
-                </div>
-              </div>
-            )}
-
             {/* Eligibility Requirements */}
             <div className="glass-card" style={{ padding: '20px' }}>
               <div style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--saffron)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
-                Eligibility Requirements
+                Voter Eligibility Criteria
               </div>
               {[
                 { icon: '🎂', text: 'Must be 18 years or older' },
@@ -175,6 +161,21 @@ const AgeVerification = () => {
                 </div>
               ))}
             </div>
+
+            {/* Info card when no date selected */}
+            {!ageInfo && (
+              <div className="glass-card" style={{ padding: '28px', textAlign: 'center' }}>
+                <div style={{ fontSize: '3.5rem', marginBottom: '12px' }}>📋</div>
+                <div className="heading-md" style={{ marginBottom: '8px' }}>Please Note These Points</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.7' }}>
+                  <p>1️⃣ Select your date of birth</p>
+                  <p>2️⃣ We calculate your exact age</p>
+                  <p>3️⃣ Age ≥ 18 → Registration form</p>
+                  <p>4️⃣ Age &lt; 18 → Eligibility info</p>
+                </div>
+              </div>
+            )}
+
 
             {/* CTA Button */}
             <button

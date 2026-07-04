@@ -746,10 +746,21 @@ h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; }
   .navbar { padding: 0 1rem; }
   .page-wrapper { padding: 80px 16px 24px; }
   .voter-card { max-width: 100%; }
+  
+  /* Make cards and big text smaller on tablet/mobile */
+  .glass-card { padding: 20px !important; }
+  .age-number { font-size: 3.5rem; }
+  .age-unit-value { font-size: 1.2rem; }
 }
 @media (max-width: 480px) {
   .step-label { display: none; }
   .step-line { width: 20px; }
+  
+  /* Even tighter layout for very small screens */
+  .glass-card { padding: 16px !important; }
+  .age-number { font-size: 2.8rem; }
+  .navbar-title { font-size: 1rem; }
+  .heading-md { font-size: 1.15rem; }
 }
 
 /* ===== CUSTOM POPUP DATE PICKER ===== */
