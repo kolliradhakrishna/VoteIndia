@@ -65,7 +65,7 @@ const AgeVerification = () => {
         <div className="page-bg-blob" />
       </div>
 
-      <div style={{ width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+      <div className="container-xl" style={{ maxWidth: '1000px' }}>
         {/* Hero Header */}
         <div style={{ textAlign: 'center', marginBottom: '48px' }} className="animate-fadeInUp">
           <div className="badge badge-saffron" style={{ marginBottom: '20px' }}>
@@ -81,19 +81,22 @@ const AgeVerification = () => {
           <div className="tricolor-stripe" style={{ maxWidth: '200px', margin: '24px auto 0' }} />
         </div>
 
-        <div className="age-verify-grid">
+        <div className="row g-4 align-items-start">
           {/* Calendar Section */}
-          <div className="glass-card animate-fadeInUp animate-delay-2" style={{ padding: '28px', minHeight: '260px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ marginBottom: '20px' }}>
-              <h2 className="heading-md" style={{ marginBottom: '6px' }}>Select Date of Birth</h2>
-              <p className="text-muted" style={{ fontSize: '0.9rem' }}>Choose your birth date from the date picker below</p>
+          <div className="col-md-6">
+            <div className="glass-card animate-fadeInUp animate-delay-2" style={{ padding: '28px', minHeight: '260px', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 10 }}>
+              <div style={{ marginBottom: '20px' }}>
+                <h2 className="heading-md" style={{ marginBottom: '6px' }}>Select Date of Birth</h2>
+                <p className="text-muted" style={{ fontSize: '0.9rem' }}>Choose your birth date from the date picker below</p>
+              </div>
+              <CalendarPicker selectedDate={selectedDate} onSelect={handleDateSelect} />
             </div>
-            <CalendarPicker selectedDate={selectedDate} onSelect={handleDateSelect} />
           </div>
 
           {/* Right Panel */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} className="animate-fadeInUp animate-delay-3">
-            {/* Selected Date Display */}
+          <div className="col-md-6">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} className="animate-fadeInUp animate-delay-3">
+              {/* Selected Date Display */}
             <div className="glass-card" style={{ padding: '24px' }}>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 Selected Date of Birth
@@ -191,6 +194,7 @@ const AgeVerification = () => {
               {ineligible && '❌ View Eligibility Details →'}
             </button>
           </div>
+          </div>
         </div>
 
         {/* Bottom info strip */}
@@ -202,18 +206,6 @@ const AgeVerification = () => {
         </div>
       </div>
 
-      {/* Responsive override */}
-      <style>{`
-        .age-verify-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 28px;
-          align-items: start;
-        }
-        @media (max-width: 768px) {
-          .age-verify-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 };

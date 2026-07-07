@@ -27,7 +27,7 @@ const NotEligible = () => {
         <div className="page-bg-blob" style={{ background: 'radial-gradient(circle, rgba(255,71,87,0.08) 0%, transparent 70%)' }} />
       </div>
 
-      <div style={{ width: '100%', maxWidth: '640px', margin: '0 auto' }}>
+      <div className="container" style={{ maxWidth: '640px' }}>
         {/* Illustration */}
         <div className="not-eligible-illustration animate-fadeInUp">
           <span className="not-eligible-icon">🚫</span>

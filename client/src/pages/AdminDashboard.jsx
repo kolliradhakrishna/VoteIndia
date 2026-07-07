@@ -117,24 +117,26 @@ const AdminDashboard = () => {
 
         {/* Stats Row */}
         {stats && (
-          <div className="animate-fadeInUp animate-delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+          <div className="animate-fadeInUp animate-delay-1 row g-3" style={{ marginBottom: '32px' }}>
             {[
               { label: 'Total Registered', value: stats.total, color: 'var(--saffron)', bg: 'rgba(255,153,51,0.08)', border: 'rgba(255,153,51,0.2)' },
               { label: 'Pending Review', value: stats.pending, color: 'var(--gold)', bg: 'rgba(245,197,24,0.08)', border: 'rgba(245,197,24,0.2)' },
               { label: 'Approved', value: stats.approved, color: 'var(--success)', bg: 'rgba(46,213,115,0.08)', border: 'rgba(46,213,115,0.2)' },
               { label: 'Rejected', value: stats.rejected, color: 'var(--danger-light)', bg: 'rgba(255,71,87,0.08)', border: 'rgba(255,71,87,0.2)' },
             ].map((s) => (
-              <div key={s.label} className="stat-card glass-card" style={{ background: s.bg, borderColor: s.border }}>
-                <div className="stat-card-value" style={{ color: s.color }}>{s.value}</div>
-                <div className="stat-card-label">{s.label}</div>
+              <div key={s.label} className="col-12 col-sm-6 col-lg-3">
+                <div className="stat-card glass-card" style={{ background: s.bg, borderColor: s.border, height: '100%' }}>
+                  <div className="stat-card-value" style={{ color: s.color }}>{s.value}</div>
+                  <div className="stat-card-label">{s.label}</div>
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 340px' : '1fr', gap: '24px' }}>
+        <div className="row g-4">
           {/* Table Panel */}
-          <div>
+          <div className={selected ? "col-lg-8" : "col-12"}>
             {/* Filters */}
             <div className="glass-card animate-fadeInUp animate-delay-2" style={{ padding: '20px', marginBottom: '20px' }}>
               <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -296,7 +298,8 @@ const AdminDashboard = () => {
 
           {/* Detail Panel */}
           {selected && (
-            <div className="glass-card animate-scaleIn" style={{ padding: '24px', alignSelf: 'start', position: 'sticky', top: '88px' }}>
+            <div className="col-lg-4">
+              <div className="glass-card animate-scaleIn" style={{ padding: '24px', alignSelf: 'start', position: 'sticky', top: '88px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
                 <div className="heading-md">Voter Details</div>
                 <button id="close-detail-panel" className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}>✕</button>
@@ -361,6 +364,7 @@ const AdminDashboard = () => {
                 >
                   🗑 Delete Record
                 </button>
+              </div>
               </div>
             </div>
           )}

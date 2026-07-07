@@ -26,7 +26,7 @@ const Success = () => {
           <div className="page-bg-blob" style={{ background: 'radial-gradient(circle, rgba(19,136,8,0.1) 0%, transparent 70%)' }} />
         </div>
 
-        <div style={{ width: '100%', maxWidth: '680px', margin: '0 auto' }}>
+        <div className="container" style={{ maxWidth: '680px' }}>
           {/* Header */}
           <div className="animate-fadeInUp" style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ fontSize: '4.5rem', marginBottom: '16px', animation: 'scaleIn 0.5s ease' }}>🎉</div>

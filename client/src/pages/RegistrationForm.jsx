@@ -161,7 +161,7 @@ const RegistrationForm = () => {
     <div className="page-wrapper" style={{ padding: '88px 20px 40px', alignItems: 'flex-start' }}>
       <div className="page-bg" aria-hidden="true"><div className="page-bg-blob" /></div>
 
-      <div style={{ width: '100%', maxWidth: '760px', margin: '0 auto' }}>
+      <div className="container" style={{ maxWidth: '760px' }}>
         {/* Header */}
         <div className="animate-fadeInUp" style={{ textAlign: 'center', marginBottom: '40px' }}>
           <div className="badge badge-green" style={{ marginBottom: '16px' }}>
@@ -217,23 +217,27 @@ const RegistrationForm = () => {
               <Field label="Full Name" name="fullName" placeholder="Enter your full name as on Aadhar" required form={form} errors={errors} onChange={onChange} />
               <div style={{ height: '20px' }} />
 
-              <div className="form-grid">
-                <Field label="Gender" name="gender" required form={form} errors={errors} onChange={onChange}>
-                  <select
-                    id="field-gender"
-                    name="gender"
-                    value={form.gender}
-                    onChange={onChange}
-                    className={`form-select${errors.gender ? ' error' : ''}`}
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {errors.gender && <span className="form-error">⚠ {errors.gender}</span>}
-                </Field>
-                <Field label="Nationality" name="nationality" placeholder="Indian" required form={form} errors={errors} onChange={onChange} />
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <Field label="Gender" name="gender" required form={form} errors={errors} onChange={onChange}>
+                    <select
+                      id="field-gender"
+                      name="gender"
+                      value={form.gender}
+                      onChange={onChange}
+                      className={`form-select${errors.gender ? ' error' : ''}`}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    {errors.gender && <span className="form-error">⚠ {errors.gender}</span>}
+                  </Field>
+                </div>
+                <div className="col-md-6">
+                  <Field label="Nationality" name="nationality" placeholder="Indian" required form={form} errors={errors} onChange={onChange} />
+                </div>
               </div>
             </div>
           )}
@@ -246,9 +250,13 @@ const RegistrationForm = () => {
                 <p className="text-muted" style={{ fontSize: '0.88rem' }}>Your contact and address details</p>
               </div>
 
-              <div className="form-grid">
-                <Field label="Phone Number" name="phone" type="tel" placeholder="10-digit mobile number" required hint="Must be a valid Indian mobile number" form={form} errors={errors} onChange={onChange} />
-                <Field label="Email Address" name="email" type="email" placeholder="your@email.com" required form={form} errors={errors} onChange={onChange} />
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <Field label="Phone Number" name="phone" type="tel" placeholder="10-digit mobile number" required hint="Must be a valid Indian mobile number" form={form} errors={errors} onChange={onChange} />
+                </div>
+                <div className="col-md-6">
+                  <Field label="Email Address" name="email" type="email" placeholder="your@email.com" required form={form} errors={errors} onChange={onChange} />
+                </div>
               </div>
               <div style={{ height: '20px' }} />
               <Field label="Full Address" name="address" placeholder="House/Flat No., Street, Locality" required form={form} errors={errors} onChange={onChange}>
@@ -264,22 +272,28 @@ const RegistrationForm = () => {
                 {errors.address && <span className="form-error">⚠ {errors.address}</span>}
               </Field>
               <div style={{ height: '20px' }} />
-              <div className="form-grid-3">
-                <Field label="City / Village" name="city" placeholder="City" required form={form} errors={errors} onChange={onChange} />
-                <Field label="State" name="state" required form={form} errors={errors} onChange={onChange}>
-                  <select
-                    id="field-state"
-                    name="state"
-                    value={form.state}
-                    onChange={onChange}
-                    className={`form-select${errors.state ? ' error' : ''}`}
-                  >
-                    <option value="">Select State</option>
-                    {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  {errors.state && <span className="form-error">⚠ {errors.state}</span>}
-                </Field>
-                <Field label="PIN Code" name="pinCode" placeholder="6-digit PIN" required hint="6 digits only" form={form} errors={errors} onChange={onChange} />
+              <div className="row g-3">
+                <div className="col-md-4">
+                  <Field label="City / Village" name="city" placeholder="City" required form={form} errors={errors} onChange={onChange} />
+                </div>
+                <div className="col-md-4">
+                  <Field label="State" name="state" required form={form} errors={errors} onChange={onChange}>
+                    <select
+                      id="field-state"
+                      name="state"
+                      value={form.state}
+                      onChange={onChange}
+                      className={`form-select${errors.state ? ' error' : ''}`}
+                    >
+                      <option value="">Select State</option>
+                      {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    {errors.state && <span className="form-error">⚠ {errors.state}</span>}
+                  </Field>
+                </div>
+                <div className="col-md-4">
+                  <Field label="PIN Code" name="pinCode" placeholder="6-digit PIN" required hint="6 digits only" form={form} errors={errors} onChange={onChange} />
+                </div>
               </div>
             </div>
           )}
@@ -292,23 +306,27 @@ const RegistrationForm = () => {
                 <p className="text-muted" style={{ fontSize: '0.88rem' }}>Your government-issued ID details</p>
               </div>
 
-              <div className="form-grid">
-                <Field
-                  label="Aadhar Number"
-                  name="aadharNumber"
-                  placeholder="12-digit Aadhar number"
-                  required
-                  hint="Enter all 12 digits without spaces"
-                  form={form} errors={errors} onChange={onChange}
-                />
-                <Field
-                  label="PAN Card Number"
-                  name="panCard"
-                  placeholder="e.g. ABCDE1234F"
-                  required
-                  hint="Format: 5 letters, 4 digits, 1 letter"
-                  form={form} errors={errors} onChange={onChange}
-                />
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <Field
+                    label="Aadhar Number"
+                    name="aadharNumber"
+                    placeholder="12-digit Aadhar number"
+                    required
+                    hint="Enter all 12 digits without spaces"
+                    form={form} errors={errors} onChange={onChange}
+                  />
+                </div>
+                <div className="col-md-6">
+                  <Field
+                    label="PAN Card Number"
+                    name="panCard"
+                    placeholder="e.g. ABCDE1234F"
+                    required
+                    hint="Format: 5 letters, 4 digits, 1 letter"
+                    form={form} errors={errors} onChange={onChange}
+                  />
+                </div>
               </div>
               <div style={{ height: '24px' }} />
 
@@ -397,9 +415,9 @@ const RegistrationForm = () => {
               ].map((section) => (
                 <div className="review-section" key={section.title}>
                   <div className="review-section-title">{section.title}</div>
-                  <div className="review-grid">
+                  <div className="row g-2">
                     {section.items.map((item) => (
-                      <div className="review-item" key={item.label}>
+                      <div className="col-md-6" key={item.label}>
                         <div className="review-item-label">{item.label}</div>
                         <div className="review-item-value">{item.value || '—'}</div>
                       </div>
